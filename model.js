@@ -19,3 +19,10 @@ export const User = mongoose.model('User', {
   }
 })
 
+export const Message = mongoose.model('Message', {
+  message : {
+    type: String,
+    required: true
+  },
+  user: { type: Schema.Types.ObjectId, ref: 'User' },
+})

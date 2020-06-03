@@ -1,14 +1,12 @@
 import mongoose from 'mongoose'
+import crypto from 'crypto'
 
 export const User = mongoose.model('User', {
   name: {
     type: String,
     unique: true
   },
-  email: {
-    type: String,
-    unique: true
-  },
+
   password: {
     type: String,
     required: true
@@ -17,6 +15,7 @@ export const User = mongoose.model('User', {
     type: String,
     default: () => crypto.randomBytes(128).toString('hex')
   }
+
 })
 
 export const Message = mongoose.model('Message', {
@@ -24,5 +23,9 @@ export const Message = mongoose.model('Message', {
     type: String,
     required: true
   },
-  user: { type: Schema.Types.ObjectId, ref: 'User' },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  createdAt : {
+    type: Date,
+    default: Date.now
+  }
 })

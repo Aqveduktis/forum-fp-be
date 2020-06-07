@@ -108,9 +108,9 @@ catch(err){
 app.post('/users/:id/messages', authenticateUser)
 app.post('/users/:id/messages', async (req, res)=>{
   try{
-    const {message} = req.body
+    const {message, game} = req.body
     const user = await User.findById(req.user._id).exec() 
-    const newMessage = await new Message({message, user }).save()
+    const newMessage = await new Message({message, game, user }).save()
     res.status(201).json({message:newMessage.message, user:newMessage.user.name })
   }
   catch (err){

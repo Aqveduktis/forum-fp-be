@@ -24,6 +24,8 @@ export const Message = mongoose.model('Message', {
     required: true
   },
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  game: {type: String, 
+  default: "general"},
   createdAt : {
     type: Date,
     default: Date.now

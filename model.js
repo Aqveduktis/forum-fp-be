@@ -31,3 +31,18 @@ export const Message = mongoose.model('Message', {
     default: Date.now
   }
 })
+export const Game = mongoose.model('Game', {
+  slug: String,
+  name: String,
+  released: String,
+  backgroundImage: String,
+  rating: Number,
+  screenshots: {
+    type: Array,
+    default: []
+  },
+  genres: {
+    type: Array,
+    default: []
+  },
+})

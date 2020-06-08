@@ -4,6 +4,9 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt-nodejs';
+import fetch from 'node-fetch';
+
+require('express-async-errors');
 import { User, Message } from './model';
 
 const mongoUrl = process.env.MONGO_URL || 'mongodb://localhost/forum';
@@ -21,6 +24,74 @@ const app = express();
 // Add middlewares to enable cors and json body parsing
 app.use(cors());
 app.use(bodyParser.json());
+
+// if (process.env.RESET_DB){
+//   const seedDatabase = async () => {
+//     await ArtistDetail.deleteMany()
+
+//     artistData.forEach((artist) => {
+// 			new ArtistDetail(artist).save()
+// 		})
+//   }
+//   seedDatabase()
+// }
+
+// "id": 28,
+//             "slug": "red-dead-redemption-2",
+//             "name": "Red Dead Redemption 2",
+//             "released": "2018-10-26",
+//             "tba": false,
+//             "background_image": "https://media.rawg.io/media/games/511/5118aff5091cb3efec399c808f8c598f.jpg",
+//             "rating": 4.56,
+//             "rating_top": 5,
+//"ratings_count": 2447,
+
+// "short_screenshots": [
+//   {
+//       "id": -1,
+//       "image": "https://media.rawg.io/media/games/511/5118aff5091cb3efec399c808f8c598f.jpg"
+//   },
+//   {
+//       "id": 778173,
+//       "image": "https://media.rawg.io/media/screenshots/7b8/7b8895a23e8ca0dbd9e1ba24696579d9.jpg"
+//   },
+//   {
+//       "id": 778174,
+//       "image": "https://media.rawg.io/media/screenshots/b8c/b8cee381079d58b981594ede46a3d6ca.jpg"
+//   },
+//   {
+//       "id": 778175,
+//       "image": "https://media.rawg.io/media/screenshots/fd6/fd6e41d4c30c098158568aef32dfed35.jpg"
+//   },
+//   {
+//       "id": 778176,
+//       "image": "https://media.rawg.io/media/screenshots/2ed/2ed3b2791b3bbed6b98bf362694aeb73.jpg"
+//   },
+//   {
+//       "id": 778177,
+//       "image": "https://media.rawg.io/media/screenshots/857/8573b9f4f06a0c112d6e39cdf3544881.jpg"
+//   },
+//   {
+//       "id": 778178,
+//       "image": "https://media.rawg.io/media/screenshots/985/985e3e1f1d1af1ab0797d43a95d472cc.jpg"
+//   }
+
+// "genres": [
+//   {
+//       "id": 4,
+//       "name": "Action",
+//       "slug": "action",
+//       "games_count": 87823,
+//       "image_background": "https://media.rawg.io/media/games/b7b/b7b8381707152afc7d91f5d95de70e39.jpg"
+//   },
+//   {
+//       "id": 2,
+//       "name": "Shooter",
+//       "slug": "shooter",
+//       "games_count": 25937,
+//       "image_background": "https://media.rawg.io/media/games/198/1988a337305e008b41d7f536ce9b73f6.jpg"
+//   }
+// ],
 
 const authenticateUser = async (req, res, next) => {
 	try {
@@ -123,6 +194,18 @@ app.get('/messages', async (req, res) => {
 		} else {
 			throw 'you have no messages';
 		}
+	} catch (err) {
+		res.status(400).json({ error: err });
+	}
+});
+
+app.get('/games', async (req, res) => {
+	const myUrl = 'https://api.rawg.io/api/games?ordering=-rating0';
+	try {
+		const result = await fetch(myUrl);
+		const json = await result.json();
+		res.status(200).json(json);
+		//const github = await oIfoundData()const ooiResponseData = await github.json()console.log(ooiResponseData)
 	} catch (err) {
 		res.status(400).json({ error: err });
 	}

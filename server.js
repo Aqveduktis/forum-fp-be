@@ -6,7 +6,6 @@ import crypto from 'crypto';
 import bcrypt from 'bcrypt-nodejs';
 import fetch from 'node-fetch';
 
-
 require('express-async-errors');
 import { User, Message, Game } from './model';
 
@@ -26,30 +25,35 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-if (process.env.RESET_DB){
-  const seedDatabase = async () => {
-    try {
-      await Game.deleteMany()
-      const myUrl = 'https://api.rawg.io/api/games?ordering=-rating0';
-      const result = await fetch(myUrl);
-      const json = await result.json();
-      const oldGames = json.results
+if (process.env.RESET_DB) {
+	const seedDatabase = async () => {
+		try {
+			await Game.deleteMany();
+			const myUrl = 'https://api.rawg.io/api/games?ordering=-rating0';
+			const result = await fetch(myUrl);
+			const json = await result.json();
+			const oldGames = json.results;
 
-      if (oldGames.length){
-      oldGames.forEach((game)=>{
-        new Game({name: game.name, slug: game.slug, released: game.released, backgroundImage: game.background_image, rating: game.rating, genres: game.genres, screenshots:game.short_screenshots }).save()
-      })
-    }
-    else {
-      throw "array is empty"
-    }
-    }
-    catch (err) {
-      console.log(err)
-    }
-    
-  }
-  seedDatabase()
+			if (oldGames.length) {
+				oldGames.forEach((game) => {
+					new Game({
+						name: game.name,
+						slug: game.slug,
+						released: game.released,
+						backgroundImage: game.background_image,
+						rating: game.rating,
+						genres: game.genres,
+						screenshots: game.short_screenshots
+					}).save();
+				});
+			} else {
+				throw 'array is empty';
+			}
+		} catch (err) {
+			console.log(err);
+		}
+	};
+	seedDatabase();
 }
 
 const authenticateUser = async (req, res, next) => {
@@ -68,7 +72,15 @@ const authenticateUser = async (req, res, next) => {
 		res.status(403).json({ message: 'access token missing or wrong', errors: err.errors });
 	}
 };
-// Start defining your routes here
+//Start defining your routes here
+app.use((req, res, next) => {
+	if (mongoose.connection.readyState === 1) {
+		next();
+	} else {
+		res.status(503).json({ error: 'service unavailible' });
+	}
+});
+
 app.get('/', (req, res) => {
 	res.send('Hello world');
 });
@@ -160,13 +172,12 @@ app.get('/messages', async (req, res) => {
 
 app.get('/games', async (req, res) => {
 	try {
-		const myGames = await Game.find()
-    if (myGames.length){
-      res.status(200).json(myGames);
-    }
-		else {
-      throw "length is zero"
-    }
+		const myGames = await Game.find();
+		if (myGames.length) {
+			res.status(200).json(myGames);
+		} else {
+			throw 'length is zero';
+		}
 		//const github = await oIfoundData()const ooiResponseData = await github.json()console.log(ooiResponseData)
 	} catch (err) {
 		res.status(400).json({ error: err });
@@ -175,10 +186,10 @@ app.get('/games', async (req, res) => {
 
 app.get('/games/:slug', async (req, res) => {
 	try {
-    const {slug} = req.params
-		const myGame = await Game.findOne({slug})
-      res.status(200).json(myGame);
- 
+		const { slug } = req.params;
+		const myGame = await Game.findOne({ slug });
+		res.status(200).json(myGame);
+
 		//const github = await oIfoundData()const ooiResponseData = await github.json()console.log(ooiResponseData)
 	} catch (err) {
 		res.status(400).json({ error: err });

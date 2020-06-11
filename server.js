@@ -152,9 +152,9 @@ app.post('/sessions', async (req, res) => {
 	const user = await User.findOne({ name: req.body.name });
 
 	if (user && bcrypt.compareSync(req.body.password, user.password)) {
-		res.json({ userId: user._id, accessToken: user.accessToken });
+		res.status(200).json({ userId: user._id, accessToken: user.accessToken });
 	} else {
-		res.json({ notFound: true });
+		res.status(401).json({ notFound: true });
 	}
 });
 app.get('/messages', async (req, res) => {

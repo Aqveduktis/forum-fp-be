@@ -80,8 +80,8 @@ app.use((req, res, next) => {
 		res.status(503).json({ error: 'service unavailible' });
 	}
 });
-const notFound = 'requested entry not found'
-const badRequest = 'could not complete request'
+const notFound = 'requested entry not found';
+const badRequest = 'could not complete request';
 
 //Start defining your routes here
 //routes: users, session(log in), messages, games
@@ -91,18 +91,16 @@ app.get('/', (req, res) => {
 //*************************************************************** */
 //find all users
 app.get('/users', async (req, res) => {
-  try{
-	const users = await User.find({},'name');
-  if (users.length) {
-    res.json(users);
-  }
-  else {
-    res.status(404).json({error:notFound})
-  }
+	try {
+		const users = await User.find({}, 'name');
+		if (users.length) {
+			res.json(users);
+		} else {
+			res.status(404).json({ error: notFound });
+		}
+	} catch (err) {
+		res.status(400).json({ error: err });
 	}
-catch (err) {
-  res.status(400).json({error: err})
-}
 });
 
 // creating new user
@@ -129,13 +127,33 @@ app.get('/users/:id', (req, res) => {
 		res.status(400).json({ message: 'user not found', errors: err.errors });
 	}
 });
+//
+app.put('/users/:id/:slug', authenticateUser);
+app.put('/users/:id/:slug', async (req, res) => {
+	const { id, slug } = req.params;
+	try {
+		const user = await User.findById(id);
+		const games = user.favoriteGames;
+		if (games.includes(slug)) {
+			throw badRequest;
+		}
+		const userUpdate = await User.findByIdAndUpdate(id, { $push: { favoriteGames: slug } }, { new: true });
+		if (userUpdate) {
+			res.status(201).json(userUpdate);
+		} else {
+			res.status(404).json({ error: notFound });
+		}
+	} catch (err) {
+		res.status(400).json({ error: err });
+	}
+});
 
 // delete one user
 app.delete('/users/:id', authenticateUser);
 app.delete('/users/:id', async (req, res) => {
 	const { id } = req.params;
 	try {
-    await Message.deleteMany({"user":id})
+		await Message.deleteMany({ user: id });
 		await User.findOneAndDelete({ _id: id });
 		res.json({ message: `user with id:${id} was delted` });
 	} catch (err) {
@@ -152,7 +170,7 @@ app.get('/users/:id/messages', async (req, res) => {
 		if (messages.length) {
 			res.status(200).json(messages);
 		} else {
-			res.status(404).json({error:notFound})
+			res.status(404).json({ error: notFound });
 		}
 	} catch (err) {
 		res.status(400).json({ error: err });
@@ -191,23 +209,39 @@ app.get('/messages', async (req, res) => {
 		if (messages.length) {
 			res.status(200).json(messages);
 		} else {
-			res.status(404).json({error:notFound})
+			res.status(404).json({ error: notFound });
 		}
 	} catch (err) {
 		res.status(400).json({ error: err });
 	}
 });
 // delete message with an Id
+app.put('/messages/:id/like', async (req, res) => {
+	const { id } = req.params;
+	try {
+		const message = await Message.findByIdAndUpdate(id, { $inc: { likes: 1 } }, { new: true }).populate(
+			'user',
+			'name'
+		);
+		if (message) {
+			res.status(201).json(message);
+		} else {
+			res.status(404).json({ error: notFound });
+		}
+	} catch (err) {
+		res.status(400).json({ error: err });
+	}
+});
+
 app.delete('/messages/:id', authenticateUser);
 app.delete('/messages/:id', async (req, res) => {
 	try {
-    const {id} = req.params
+		const { id } = req.params;
 		await Message.findOneAndDelete({ _id: id });
 		res.status(200).json({ message: `message with id:${id} was delted` });
 	} catch (err) {
 		res.status(400).json({ message: badRequest, error: err });
 	}
-	
 });
 
 //*************************************************************** */
@@ -218,7 +252,7 @@ app.get('/games', async (req, res) => {
 		if (myGames.length) {
 			res.status(200).json(myGames);
 		} else {
-			res.status(404).json({error:notFound})
+			res.status(404).json({ error: notFound });
 		}
 		//const github = await oIfoundData()const ooiResponseData = await github.json()console.log(ooiResponseData)
 	} catch (err) {
@@ -230,13 +264,11 @@ app.get('/games/:slug', async (req, res) => {
 	try {
 		const { slug } = req.params;
 		const myGame = await Game.findOne({ slug });
-    if (myGame) {
-      res.status(200).json(myGame);
-    }
-    else {
-      res.status(404).json({error:notFound})
-    }
-
+		if (myGame) {
+			res.status(200).json(myGame);
+		} else {
+			res.status(404).json({ error: notFound });
+		}
 	} catch (err) {
 		res.status(400).json({ error: err });
 	}

@@ -55,7 +55,7 @@ if (process.env.RESET_DB) {
 	};
 	seedDatabase();
 }
-
+// authenicate user
 const authenticateUser = async (req, res, next) => {
 	try {
 		const user = await User.findOne({

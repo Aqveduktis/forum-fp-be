@@ -61,15 +61,14 @@ const authenticateUser = async (req, res, next) => {
 		const user = await User.findOne({
 			accessToken: req.header('Authorization')
 		});
-		console.log(req.header('Authorization'));
 		if (user) {
 			req.user = user;
 			next();
 		} else {
-			res.status(401).json({ loggedOut: true, message: 'Please try logging in again' });
+			res.status(401).json({ loggedOut: true });
 		}
 	} catch (err) {
-		res.status(403).json({ message: 'access token missing or wrong', errors: err.errors });
+		  res.status(403).json({ errors: err.errors });
 	}
 };
 
@@ -94,7 +93,7 @@ app.get('/users', async (req, res) => {
 	try {
 		const users = await User.find({}, 'name');
 		if (users.length) {
-			res.json(users);
+			res.status(200).json(users);
 		} else {
 			res.status(404).json({ error: notFound });
 		}
@@ -112,19 +111,20 @@ app.post('/users', async (req, res) => {
 			const saved = await user.save();
 			res.status(201).json(saved);
 		} else {
-			throw 'you have to have a password';
+			throw badRequest;
 		}
 	} catch (err) {
-		res.status(400).json({ message: 'could not save user', errors: err });
+		res.status(400).json({ errors: err });
 	}
 });
 // get one user
 app.get('/users/:id', authenticateUser);
-app.get('/users/:id', (req, res) => {
+app.get('/users/:id', async(req, res) => {
 	try {
-		res.status(201).json({ name: req.user.name });
+    const messages = await Message.find({ user: mongoose.Types.ObjectId(req.user.id) })
+		res.status(200).json({name: req.user.name, favoriteGames: req.user.favoriteGames, messages });
 	} catch (err) {
-		res.status(400).json({ message: 'user not found', errors: err.errors });
+		res.status(400).json({ errors: err.errors });
 	}
 });
 //
@@ -162,32 +162,7 @@ app.delete('/users/:id', async (req, res) => {
 });
 
 // get all messages from one user
-app.get('/users/:id/messages', authenticateUser);
-app.get('/users/:id/messages', async (req, res) => {
-	try {
-		const user = await User.findById(req.user._id).exec();
-		const messages = await Message.find({ user: mongoose.Types.ObjectId(user.id) }).populate('user', 'name');
-		if (messages.length) {
-			res.status(200).json(messages);
-		} else {
-			res.status(404).json({ error: notFound });
-		}
-	} catch (err) {
-		res.status(400).json({ error: err });
-	}
-});
-// post a new message
-app.post('/users/:id/messages', authenticateUser);
-app.post('/users/:id/messages', async (req, res) => {
-	try {
-		const { message, game } = req.body;
-		const user = await User.findById(req.user._id).exec();
-		const newMessage = await new Message({ message, game, user }).save();
-		res.status(201).json({ message: newMessage.message, user: user.name, game });
-	} catch (err) {
-		res.status(400).json({ error: err });
-	}
-});
+
 
 //*************************************************************** */
 // logged in
@@ -211,6 +186,19 @@ app.get('/messages', async (req, res) => {
 		} else {
 			res.status(404).json({ error: notFound });
 		}
+	} catch (err) {
+		res.status(400).json({ error: err });
+	}
+});
+
+// post a new message
+app.post('/messages', authenticateUser);
+app.post('/messages', async (req, res) => {
+	try {
+		const { message, game } = req.body;
+		const user = await User.findById(req.user._id).exec();
+		const newMessage = await new Message({ message, game, user }).save();
+		res.status(201).json({ message: newMessage.message, user: user.name, game });
 	} catch (err) {
 		res.status(400).json({ error: err });
 	}

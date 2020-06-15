@@ -127,6 +127,7 @@ app.get('/users/:id', async(req, res) => {
 		res.status(400).json({ errors: err.errors });
 	}
 });
+
 //
 app.put('/users/:id/:slug', authenticateUser);
 app.put('/users/:id/:slug', async (req, res) => {
@@ -134,19 +135,25 @@ app.put('/users/:id/:slug', async (req, res) => {
 	try {
 		const user = await User.findById(id);
 		const games = user.favoriteGames;
+    let userUpdate = null
 		if (games.includes(slug)) {
-			throw badRequest;
+			userUpdate = await User.findByIdAndUpdate({_id:id}, { $pull: {favoriteGames: slug }}, { new: true }).exec();
+      
 		}
-		const userUpdate = await User.findByIdAndUpdate(id, { $push: { favoriteGames: slug } }, { new: true });
+		else {
+      	userUpdate = await User.findByIdAndUpdate(id, { $push: { favoriteGames: slug } }, { new: true });
+    }
+    
 		if (userUpdate) {
 			res.status(201).json(userUpdate);
 		} else {
 			res.status(404).json({ error: notFound });
 		}
 	} catch (err) {
-		res.status(400).json({ error: err });
+		res.status(400).json({ error: err.error });
 	}
 });
+
 
 // delete one user
 app.delete('/users/:id', authenticateUser);
@@ -180,7 +187,7 @@ app.post('/sessions', async (req, res) => {
 // show messages
 app.get('/messages', async (req, res) => {
 	try {
-		const messages = await Message.find().populate('user', 'name');
+		const messages = await Message.find().populate('user', 'name').sort({createdAt:'desc'}).limit(20);
 		if (messages.length) {
 			res.status(200).json(messages);
 		} else {

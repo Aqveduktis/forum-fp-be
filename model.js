@@ -55,3 +55,11 @@ export const Game = mongoose.model('Game', {
 		default: []
 	}
 });
+
+export const Genre = mongoose.model('Genre', {
+  slug: String,
+  name: String,
+  backgroundImage: String,
+  gamesCount: Number,
+  description: String
+})

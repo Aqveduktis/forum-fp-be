@@ -7,7 +7,7 @@ import bcrypt from 'bcrypt-nodejs';
 import fetch from 'node-fetch';
 
 require('express-async-errors');
-import { User, Message, Game } from './model';
+import { User, Message, Game, Genre } from './model';
 
 const mongoUrl = process.env.MONGO_URL || 'mongodb://localhost/forum';
 mongoose.connect(mongoUrl, { useCreateIndex: true, useNewUrlParser: true, useUnifiedTopology: true });
@@ -26,7 +26,8 @@ app.use(cors());
 app.use(bodyParser.json());
 
 if (process.env.RESET_DB) {
-	const seedDatabase = async () => {
+	const seedGames = async () => {
+  
 		try {
 			await Game.deleteMany();
 			const myUrl = 'https://api.rawg.io/api/games?ordering=-rating0';
@@ -53,7 +54,35 @@ if (process.env.RESET_DB) {
 			console.log(err);
 		}
 	};
-	seedDatabase();
+  const seedGenres = async () => {
+    const genresList = ["action", "adventure", "fighting", "indie","puzzle", "racing", "role-playing-games-rpg", "shooter"]
+    let result = null
+    let json = null
+    try {
+      await Genre.deleteMany()
+      for (const genre of genresList) {
+        result = await fetch(`https://api.rawg.io/api/genres/${genre}`)
+        json = await result.json()
+        if (json.name) {
+          new Genre({
+            slug: json.slug,
+            name: json.name,
+            backgroundImage: json.image_background,
+            gamesCount: json.games_count,
+            description: json.description
+          }).save()
+        }
+        else {
+          throw "fetch did not work"
+        }
+      } 
+    } catch (err) {
+        console.log(err)
+      }
+  }
+
+	seedGames();
+  seedGenres();
 }
 // authenicate user
 const authenticateUser = async (req, res, next) => {
@@ -268,6 +297,36 @@ app.get('/games/:slug', async (req, res) => {
 		res.status(400).json({ error: err });
 	}
 });
+
+app.get('/genres', async(req, res) => {
+  	try {
+		const myGenres = await Genre.find();
+		if (myGenres.length) {
+			res.status(200).json(myGenres);
+		} else {
+			res.status(404).json({ error: notFound });
+		}
+	} catch (err) {
+		res.status(400).json({ error: err });
+	}
+})
+
+app.get('/genres/:slug', async(req, res) => {
+  try {
+      const {slug} = req.params
+  const genre = await Genre.findOne({slug})
+  if (genre.name) {
+    res.status(200).json(genre)
+  }
+  else {
+    res.status(404).json({error: notFound})
+  }
+  } catch (err) {
+    res.status(400).json({error:err})
+  }
+
+
+})
 
 // Start the server
 app.listen(port, () => {

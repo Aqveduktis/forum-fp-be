@@ -85,7 +85,7 @@ const badRequest = 'could not complete request';
 //Start defining your routes here
 //routes: users, session(log in), messages, games
 app.get('/', (req, res) => {
-	res.send('Hello world');
+	res.status(200).send('Hello world');
 });
 //*************************************************************** */
 //find all users
@@ -124,7 +124,7 @@ app.get('/users/:id', async (req, res) => {
 		const messages = await Message.find({ user: mongoose.Types.ObjectId(req.user.id) });
 		res.status(200).json({ name: req.user.name, favoriteGames: req.user.favoriteGames, messages });
 	} catch (err) {
-		res.status(400).json({ errors: err.errors });
+		res.status(400).json({ errors: err });
 	}
 });
 
@@ -152,7 +152,7 @@ app.put('/users/:id/:slug', async (req, res) => {
 			res.status(404).json({ error: notFound });
 		}
 	} catch (err) {
-		res.status(400).json({ error: err.error });
+		res.status(400).json({ error: err });
 	}
 });
 
@@ -165,7 +165,7 @@ app.delete('/users/:id', async (req, res) => {
 		await User.findOneAndDelete({ _id: id });
 		res.json({ message: `user with id:${id} was delted` });
 	} catch (err) {
-		res.status(400).json({ message: 'user could not be deleted', error: err });
+		res.status(400).json({ error: err });
 	}
 });
 
@@ -212,7 +212,7 @@ app.post('/messages', async (req, res) => {
 	}
 });
 // delete message with an Id
-app.put('/messages/:id/like', async (req, res) => {
+app.post('/messages/:id/like', async (req, res) => {
 	const { id } = req.params;
 	try {
 		const message = await Message.findByIdAndUpdate(id, { $inc: { likes: 1 } }, { new: true }).populate(
@@ -236,7 +236,7 @@ app.delete('/messages/:id', async (req, res) => {
 		await Message.findOneAndDelete({ _id: id });
 		res.status(200).json({ message: `message with id:${id} was delted` });
 	} catch (err) {
-		res.status(400).json({ message: badRequest, error: err });
+		res.status(400).json({ error: err });
 	}
 });
 
@@ -250,7 +250,6 @@ app.get('/games', async (req, res) => {
 		} else {
 			res.status(404).json({ error: notFound });
 		}
-		//const github = await oIfoundData()const ooiResponseData = await github.json()console.log(ooiResponseData)
 	} catch (err) {
 		res.status(400).json({ error: err });
 	}

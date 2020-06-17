@@ -313,19 +313,18 @@ app.get('/genres', async(req, res) => {
 
 app.get('/genres/:slug', async(req, res) => {
   try {
-      const {slug} = req.params
-  const genre = await Genre.findOne({slug})
-  if (genre.name) {
+    const {slug} = req.params
+    const genre = await Genre.findOne({slug})
+ 
+  if (genre) {
     res.status(200).json(genre)
   }
   else {
     res.status(404).json({error: notFound})
   }
   } catch (err) {
-    res.status(400).json({error:err})
+    res.status(400).json({error : err})
   }
-
-
 })
 
 // Start the server

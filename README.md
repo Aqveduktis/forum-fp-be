@@ -1,7 +1,11 @@
-# Express Starter Project
+# Final project backend
 
-This project includes the packages and babel setup for an express server, and is just meant to make things a little simpler to get up and running with.
+This is the backend of my technigo final project. It is a forum where users can post messages about games. 
+It has a database with users, messages, games and genres. 
 
-## Getting started
+## Live
+Live frontend: https://aqveduktis-final-project-forum.netlify.app/
 
-Install dependencies with `npm install`, then start the server by running `npm run dev`
+Live: backend:  https://aqveduktis-final-project.herokuapp.com/
+
+github-frontend: https://github.com/Aqveduktis/forum-fp-fe
